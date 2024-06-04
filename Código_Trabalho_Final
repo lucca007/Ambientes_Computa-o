@@ -1,0 +1,113 @@
+# depêndencia de bibliotecas
+import os
+import glob 
+import argparse
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+
+
+
+def Admixture (args, name, file):
+    linhazinha_adx = f"admixture {file} {args.ADX} --cv -s time > ./Output_admixture/{name}_LOG_out" 
+    print(linhazinha_adx)
+    os.system(linhazinha_adx)
+    os.system(f"mv {name}_output.3.P ./Output_admixture")
+    os.system(f"mv {name}_output.3.Q ./Output_admixture")
+    files = glob.glob(f"./Output_admixture/*.Q")
+    for file in files:
+        Plot(file)
+
+
+def Controle_de_Qualidade (args,file):
+        file = file[:-4]
+        name= file.split("/")
+        name = name[-1]
+
+        linhazinha = f"plink --bfile {file}"
+
+        if not args.MAF == "": 
+            linhazinha += f" --maf {args.MAF}"
+        if not args.EHW == "": 
+            linhazinha += f" --hwe {args.EHW}"
+            
+        linhazinha +=  f" --make-bed --missing --out ./Output/{name}_output"
+        print(linhazinha)
+        os.system(linhazinha)
+        if not args.ADX == "":
+            files2 = glob.glob(f"./Output/*.bed")
+            for file in files2:
+                print("-----------")
+                print(file)
+                Admixture(args, name, file)
+
+
+
+def caminho_para_chamar_arquivo(args):
+    files = glob.glob(f"{args.path}/*.bed")
+    for file in files:
+        print(file)
+        Controle_de_Qualidade(args,file)
+
+    
+
+
+# def Extrair_arquivo_from_admixture (file):
+#     print("AGSDAYWHGDSAGWSBHDLAWSHGDLAWSHGDLOWGDH")
+#     varivel_k_3 = ".3.Q"
+#     saida  = ""
+#     for i in file:
+#         if i[-4:] == varivel_k_3:
+#             saida = i
+#     print(saida)
+
+
+
+def Plot (file_2):
+    file_path = "/home/ldgh08/lucca/python/Output_admixture/hapmap3_output.3.Q"
+    tbl = pd.read_csv(file_path, delim_whitespace=True, header=None)
+    tbl_t = tbl.transpose()
+    colors = plt.cm.rainbow(np.linspace(0, 1, tbl_t.shape[0]))
+    plt.figure(figsize=(10, 6))
+    for i in range(tbl_t.shape[0]):
+        if i == 0:
+            plt.bar(range(tbl_t.shape[1]), tbl_t.iloc[i], color=colors[i])
+        else:
+            plt.bar(range(tbl_t.shape[1]), tbl_t.iloc[i], bottom=tbl_t.iloc[:i].sum(), color=colors[i])
+    plt.xlabel("Individual #")
+    plt.ylabel("Ancestry")
+    plt.title("Ancestry Proportions by Individual")
+    plt.gca().spines['top'].set_visible(False)
+    plt.gca().spines['right'].set_visible(False)
+    plt.show()
+
+
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Script para executar o controe de qualidade automatizado")
+    
+    parser.add_argument('--path', required=True, help="nome arquivo entrada")
+    parser.add_argument('--EHW', required=False, default="", help="equilibrío de Hardy-Weinberg")
+    parser.add_argument('--MAF', required=False, default="", help="Minor Allele Frequency")
+    parser.add_argument('--ADX', required=False, default="", help="Admixture para ancestralidade e PCA")
+    
+    args = parser.parse_args()
+    
+    if not os.path.exists("./Output"):
+        os.makedirs("./Output")
+    if not os.path.exists("./Output_admixture"):
+        os.makedirs("./Output_admixture")
+    
+    caminho_para_chamar_arquivo(args)
+
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
