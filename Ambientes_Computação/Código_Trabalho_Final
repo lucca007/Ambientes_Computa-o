@@ -54,15 +54,6 @@ def caminho_para_chamar_arquivo(args):
     
 
 
-# def Extrair_arquivo_from_admixture (file):
-#     print("AGSDAYWHGDSAGWSBHDLAWSHGDLAWSHGDLOWGDH")
-#     varivel_k_3 = ".3.Q"
-#     saida  = ""
-#     for i in file:
-#         if i[-4:] == varivel_k_3:
-#             saida = i
-#     print(saida)
-
 
 
 def Plot (file_2):
